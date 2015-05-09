@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="/">
+    <file>ui/Toolbox.qml</file>
+    <file>icons/back.png</file>
+    <file>icons/forward.png</file>
+    <file>icons/reload.png</file>
+    <file>icons/stop.png</file>
+    <file>icons/window-new.png</file>
+    <file>icons/window-close.png</file>
+  </qresource>
+</RCC>
