@@ -20,7 +20,6 @@ int main(int argc, char* argv[]) {
 
   setenv("CUSTOM_UA", "Mozilla/5.0 (Maemo; Linux; U; Jolla; Sailfish; Mobile; "
          "rv:31.0) Gecko/31.0 Firefox/31.0 SailfishBrowser/1.0", 1);
-  setenv("MOZ_USE_EXTERNAL_WINDOW", "1", 1);
   setenv("USE_ASYNC", "1", 1);
 
   qmlRegisterType<QOpenGLWebPage>();

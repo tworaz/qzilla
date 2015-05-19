@@ -64,6 +64,7 @@ struct {
 
   // Don't force 16bit color depth
   { QStringLiteral("gfx.qt.rgb16.force"), QVariant(false) },
+  { QStringLiteral("gfx.compositor.external-window"), QVariant(true) },
 
   { QStringLiteral("media.resource_handler_disabled"), QVariant(true) },
 
