@@ -26,6 +26,7 @@ WebView::WebView(WebWindow* window, QObject* parent)
           this, &WebView::OnCompletedChanged);
   connect(this, &QOpenGLWebPage::activeChanged,
           this, &WebView::OnActiveChanged);
+  initialize();
 }
 
 WebView::~WebView() {
