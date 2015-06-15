@@ -27,6 +27,7 @@ class WebWindow : public QWindow {
   void mouseReleaseEvent(QMouseEvent*) override;
   void keyPressEvent(QKeyEvent*) override;
   void keyReleaseEvent(QKeyEvent*) override;
+  void exposeEvent(QExposeEvent *) override;
 
  private slots:
   void OnTitleChanged();

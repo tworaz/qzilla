@@ -33,6 +33,7 @@ WebWindow::SetActiveWebView(WebView* wv) {
   web_view_ = wv;
 
   web_view_->setActive(true);
+  web_view_->update();
 
   connect(web_view_, &WebView::titleChanged,
           this, &WebWindow::OnTitleChanged);
@@ -95,6 +96,13 @@ void
 WebWindow::keyReleaseEvent(QKeyEvent* evt) {
   if (web_view_)
     web_view_->keyReleaseEvent(evt);
+}
+
+void
+WebWindow::exposeEvent(QExposeEvent*) {
+  if (QWindow::isExposed()) {
+    web_view_->update();
+  }
 }
 
 void
