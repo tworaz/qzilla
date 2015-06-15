@@ -44,19 +44,21 @@ struct {
   //{ QStringLiteral("embedlite.azpc.json.longtap"), QVariant(true) },
   //{ QStringLiteral("embedlite.azpc.json.viewport"), QVariant(true) },
 
-  //{ QStringLiteral("embedlite.azpc.handle.singletap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.handle.doubletap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.handle.longtap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.json.viewport"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.json.singletap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.json.doubletap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.json.longtap"), QVariant(true) },
+  { QStringLiteral("browser.download.useDownloadDir"), QVariant(true) },
+  { QStringLiteral("browser.download.folderList"), QVariant(2) },
+  { QStringLiteral("browser.download.dir"), QVariant("/tmp") },
+  { QStringLiteral("browser.download.manager.retention"), QVariant(2) },
+  { QStringLiteral("browser.download.manager.quitBehavior"), QVariant(2) },
+  { QStringLiteral("browser.helperApps.deleteTempFileOnExit"), QVariant(true) },
 
   // Without this pref placeholders get cleaned as soon as a character gets committed
   // by VKB and that happens only when Enter is pressed or comma/space/dot is entered.
   { QStringLiteral("dom.placeholder.show_on_focus"), QVariant(false) },
 
   { QStringLiteral("security.alternate_certificate_error_page"), QVariant("certerror") },
+
+  { QStringLiteral("geo.wifi.scan"), QVariant(false) },
+  { QStringLiteral("browser.enable_automatic_image_resizing"), QVariant(true) },
 
   // Make long press timeout equal to the one in Qt
   { QStringLiteral("ui.click_hold_context_menus.delay"), QVariant(800) },
@@ -65,11 +67,14 @@ struct {
   // Don't force 16bit color depth
   { QStringLiteral("gfx.qt.rgb16.force"), QVariant(false) },
   { QStringLiteral("gfx.compositor.external-window"), QVariant(true) },
+  { QStringLiteral("gfx.compositor.clear-context"), QVariant(false) },
 
   { QStringLiteral("media.resource_handler_disabled"), QVariant(true) },
 
   // Disable asmjs
   { QStringLiteral("javascript.options.asmjs"), QVariant(false) },
+
+  { QStringLiteral("keyword.enabled"), QVariant(true) },
 
   // Theme.fontSizeSmall
   { QStringLiteral("embedlite.inputItemSize"), QVariant(28) },
@@ -82,6 +87,13 @@ struct {
 
   // Disable SSLv3
   { QStringLiteral("security.tls.version.min"), QVariant(1) },
+
+  { QStringLiteral("layers.progressive-paint"), QVariant(true) },
+  { QStringLiteral("layers.low-precision-buffer"), QVariant(true) },
+
+  //{ QStringLiteral("layers.draw-layer-info"), QVariant(true) },
+  //{ QStringLiteral("layers.draw-borders"), QVariant(true) },
+  //{ QStringLiteral("layers.acceleration.draw-fps"), QVariant(true) },
 };
 
 void LoadEmbedLiteComponents(const char* root_dir) {
