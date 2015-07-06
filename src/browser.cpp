@@ -152,6 +152,7 @@ Browser::CloseWebView(WebView* wv) {
   wv->setActive(false);
   web_view_list_.remove(wv);
   web_window_->SetActiveWebView(web_view_list_.get(0));
+  delete wv;
 }
 
 void

@@ -16,6 +16,7 @@ class WebWindow : public QWindow {
   Q_OBJECT
  public:
   explicit WebWindow(QWindow* parent = 0);
+  ~WebWindow();
 
   void SetActiveWebView(WebView* wv);
   WebView* ActiveWebView() const { return web_view_; }

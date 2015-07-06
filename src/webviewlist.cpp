@@ -25,7 +25,6 @@ WebViewList::remove(WebView* wv) {
   beginRemoveRows(QModelIndex(), idx, idx);
   data_.removeAt(idx);
   endRemoveRows();
-
 }
 
 WebView*

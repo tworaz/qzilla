@@ -23,9 +23,16 @@ WebWindow::WebWindow(QWindow* parent)
   create();
 }
 
+WebWindow::~WebWindow() {
+  QMutexLocker lock(&clear_surface_task_mutex_);
+  if (clear_surface_task_) {
+    QMozContext::GetInstance()->CancelTask(clear_surface_task_);
+  }
+}
+
 void
 WebWindow::SetActiveWebView(WebView* wv) {
-  if (wv == web_view_) {
+  if (web_view_ && wv == web_view_) {
     qWarning() << "Tryig to activate already active webview";
     return;
   }
@@ -147,6 +154,8 @@ WebWindow::OnTitleChanged() {
 void
 WebWindow::ClearWindowSurfaceImpl(void* data) {
   WebWindow* ww = static_cast<WebWindow*>(data);
+  QMutexLocker lock(&ww->clear_surface_task_mutex_);
+
   QOpenGLContext* context = ww->GLContext();
   // The GL context should always be used from the same thread in which it was created.
   Q_ASSERT(context->thread() == QThread::currentThread());
@@ -156,4 +165,6 @@ WebWindow::ClearWindowSurfaceImpl(void* data) {
   funcs->glClearColor(1.0, 1.0, 1.0, 0.0);
   funcs->glClear(GL_COLOR_BUFFER_BIT);
   context->swapBuffers(ww);
+
+  ww->clear_surface_task_ = 0;
 }
