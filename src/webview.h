@@ -7,7 +7,6 @@
 
 #include <QWindow>
 #include <QOpenGLFunctions>
-#include <QElapsedTimer>
 #include <qopenglwebpage.h>
 
 class QOpenGLContext;
@@ -28,7 +27,6 @@ class WebView: public QOpenGLWebPage {
  private:
   WebWindow* window_;
   QOpenGLContext* context_;
-  QElapsedTimer startup_timer_;
 };
 
 #endif // !WEB_VIEW_H_

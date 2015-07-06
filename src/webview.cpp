@@ -13,6 +13,23 @@
 
 #include "webwindow.h"
 
+namespace {
+
+void LoadFrameScripts(QOpenGLWebPage* page) {
+  static const char* kFrameScripts[] = {
+    "chrome://embedlite/content/SelectAsyncHelper.js",
+    "chrome://embedlite/content/embedhelper.js",
+  };
+
+  int arr_size = sizeof(kFrameScripts) / sizeof(*kFrameScripts);
+  for (int i = 0; i < arr_size; ++i) {
+    qDebug() << "Loading frame script:" << kFrameScripts[i];
+    page->loadFrameScript(kFrameScripts[i]);
+  }
+}
+
+} // namespace
+
 WebView::WebView(WebWindow* window, QObject* parent)
     : QOpenGLWebPage(parent)
     , window_(window)
@@ -26,7 +43,9 @@ WebView::WebView(WebWindow* window, QObject* parent)
           this, &WebView::OnCompletedChanged);
   connect(this, &QOpenGLWebPage::activeChanged,
           this, &WebView::OnActiveChanged);
+
   initialize();
+  LoadFrameScripts(this);
 }
 
 WebView::~WebView() {
@@ -40,16 +59,19 @@ WebView::CreateGLContext() {
     if (!context_->create())
       qFatal("Failed to create QOpenGLContext!");
     context_->makeCurrent(window_);
-    qDebug() << "GL context requested after" << startup_timer_.elapsed() << "ms";
   } else {
     context_->makeCurrent(window_);
   }
+  QOpenGLFunctions* functions = context_->functions();
+  Q_ASSERT(functions);
+  functions->glClearColor(1.0, 1.0, 1.0, 0.0);
+  functions->glClear(GL_COLOR_BUFFER_BIT);
+  context_->swapBuffers(window_);
 }
 
 void
 WebView::OnCompletedChanged() {
   qDebug() << "WebView creation completed";
-  startup_timer_.start();
 }
 
 void

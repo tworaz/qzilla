@@ -8,7 +8,7 @@
 
 WebViewList::WebViewList(QObject* parent)
     : QAbstractListModel(parent) {
-  role_names_[Qt::UserRole] = "WebView";
+  role_names_[Qt::UserRole] = "currentWebView";
 }
 
 void

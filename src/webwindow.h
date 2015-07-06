@@ -16,6 +16,7 @@ class WebWindow : public QWindow {
   explicit WebWindow(QWindow* parent = 0);
 
   void SetActiveWebView(WebView* wv);
+  WebView* ActiveWebView() const { return web_view_; }
 
  protected:
   void resizeEvent(QResizeEvent*) override;

@@ -6,12 +6,6 @@ TARGET = qzilla
 CONFIG += c++11
 QT += qml
 
-!isEmpty(SF_TARGET) {
-  DEFINES += SILICA
-  CONFIG += sailfishapp
-  QT+= quick
-}
-
 SOURCES += \
 	src/main.cpp \
 	src/browser.cpp \

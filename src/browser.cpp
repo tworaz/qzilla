@@ -4,22 +4,22 @@
 
 #include "browser.h"
 
+#include <QDateTime>
 #include <QDebug>
+#include <QDir>
 #include <QQmlApplicationEngine>
 #include <QQmlComponent>
 #include <QQmlContext>
-#include <qmozcontext.h>
 
-#if defined(SILICA)
-#include <QGuiApplication>
-#include <QScreen>
-#endif
+#include <qmozcontext.h>
 
 namespace {
 
 const char kHomePageURL[] = "http://www.google.com";
 const int kDefaultWindowWidth = 540;
 const int kDefaultWindowHeight = 960;
+
+const char* kMemoryDumpMsg = "Memory:Dump";
 
 const char* kExtraComponentPaths[] = {
   "components/EmbedLiteBinComponents.manifest",
@@ -38,11 +38,11 @@ struct {
   { QStringLiteral("browser.ui.touch.top"), QVariant(48) },
   { QStringLiteral("browser.ui.touch.bottom"), QVariant(16) },
 
-  //{ QStringLiteral("embedlite.azpc.handle.singletap"), QVariant(false) },
-  //{ QStringLiteral("embedlite.azpc.json.singletap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.handle.longtap"), QVariant(false) },
-  //{ QStringLiteral("embedlite.azpc.json.longtap"), QVariant(true) },
-  //{ QStringLiteral("embedlite.azpc.json.viewport"), QVariant(true) },
+  { QStringLiteral("embedlite.azpc.handle.singletap"), QVariant(false) },
+  { QStringLiteral("embedlite.azpc.json.singletap"), QVariant(true) },
+  { QStringLiteral("embedlite.azpc.handle.longtap"), QVariant(false) },
+  { QStringLiteral("embedlite.azpc.json.longtap"), QVariant(true) },
+  { QStringLiteral("embedlite.azpc.json.viewport"), QVariant(true) },
 
   { QStringLiteral("browser.download.useDownloadDir"), QVariant(true) },
   { QStringLiteral("browser.download.folderList"), QVariant(2) },
@@ -68,6 +68,8 @@ struct {
   { QStringLiteral("gfx.qt.rgb16.force"), QVariant(false) },
   { QStringLiteral("gfx.compositor.external-window"), QVariant(true) },
   { QStringLiteral("gfx.compositor.clear-context"), QVariant(false) },
+  { QStringLiteral("embedlite.compositor.external_gl_context"), QVariant(true) },
+  { QStringLiteral("embedlite.compositor.request_external_gl_context_early"), QVariant(true) },
 
   { QStringLiteral("media.resource_handler_disabled"), QVariant(true) },
 
@@ -91,6 +93,7 @@ struct {
   { QStringLiteral("layers.progressive-paint"), QVariant(true) },
   { QStringLiteral("layers.low-precision-buffer"), QVariant(true) },
 
+  //{ QStringLiteral("nglayout.debug.paint_flashing"), QVariant(true) },
   //{ QStringLiteral("layers.draw-layer-info"), QVariant(true) },
   //{ QStringLiteral("layers.draw-borders"), QVariant(true) },
   //{ QStringLiteral("layers.acceleration.draw-fps"), QVariant(true) },
@@ -118,12 +121,7 @@ Browser::Browser(QObject* parent)
 
   LoadEmbedLiteComponents(getenv("GRE_HOME"));
 
-#if defined(SILICA)
-  QSize screenSize = QGuiApplication::primaryScreen()->size();
-  web_window_->resize(screenSize.width(), screenSize.height());
-#else
   web_window_->resize(kDefaultWindowWidth, kDefaultWindowHeight);
-#endif
 
   engine_->rootContext()->setContextProperty("WebViewList", &web_view_list_);
   engine_->rootContext()->setContextProperty("Browser", this);
@@ -147,6 +145,32 @@ Browser::CreateNewWebView(QString url) {
   web_view_list_.append(wv);
   web_window_->SetActiveWebView(wv);
   wv->load(url);
+}
+
+void
+Browser::SetActiveWebView(WebView* wv) {
+  Q_ASSERT(web_view_list_.contains(wv));
+  web_window_->SetActiveWebView(wv);
+}
+
+void
+Browser::DumpMemoryInfo() {
+  WebView* wv = web_window_->ActiveWebView();
+  if (wv) {
+    QString dir = QDir::currentPath() + QDir::separator() + "memdumps";
+    if (!QDir().mkpath(dir)) {
+      qCritical() << "Failed to create directory:" << dir;
+      return;
+    }
+    QDateTime date = QDateTime::currentDateTime();
+    QMap<QString, QVariant> qmap;
+    qmap["fileName"] = dir + QDir::separator() + "qzilla-memory-dump-" +
+        date.toString("yyyyMMddhhmmss") + ".gz";
+    wv->sendAsyncMessage(kMemoryDumpMsg, QVariant(qmap));
+    qDebug() << "Saving engine memory dump to:" << qmap["fileName"].toString();
+  } else {
+    qWarning() << "Can't dump engine memory info without active webview!";
+  }
 }
 
 void

@@ -3,17 +3,24 @@
 // found in the LICENSE file.
 
 import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
 
 ApplicationWindow {
   width: 600
-  height: 700
+  height: 400
   visible: true
   title: "QZilla Toolbox"
 
-  readonly property string kHomePage: "https://www.google.com"
+  readonly property string kHomePage: "about:blank"
   property alias activeWebView: listView.activeWebView
+
+  menuBar: MenuBar {
+    Menu {
+      title: "Memory"
+      MenuItem { text: "Dump info"; onTriggered: Browser.DumpMemoryInfo() }
+    }
+  }
 
   toolBar: ToolBar {
     RowLayout {
@@ -71,27 +78,31 @@ ApplicationWindow {
       delegate: Rectangle {
         width: parent.width
         height: childrenRect.height
-        color: WebView.active ? "steelblue" : "lightsteelblue"
+        color: currentWebView.active ? "steelblue" : "lightsteelblue"
         radius: 8
 
         Component.onCompleted: {
-          if (WebView.active && !listView.activeWebView)
-            listView.activeWebView = WebView
+          if (currentWebView.active && !listView.activeWebView)
+            listView.activeWebView = currentWebView
         }
 
         Connections {
-          target: WebView
+          target: currentWebView
           onActiveChanged: {
-            if (WebView.active) {
+            if (currentWebView.active) {
               listView.currentIndex = index
-              listView.activeWebView = WebView
+              listView.activeWebView = currentWebView
             }
           }
         }
 
         MouseArea {
           anchors.fill: parent
-          onClicked: WebView.active = true
+	  onClicked: {
+            if (!currentWebView.active) {
+	      Browser.SetActiveWebView(currentWebView)
+            }
+	  }
         }
 
         RowLayout {
@@ -100,7 +111,7 @@ ApplicationWindow {
           Text {
             Layout.fillWidth: true
             width: parent.width
-            text: WebView.title
+            text: currentWebView.title.length ? currentWebView.title : "about:blank"
             font.pixelSize: 16
             elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter

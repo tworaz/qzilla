@@ -24,6 +24,9 @@ class Browser : public QObject {
   void SetInitialURL(QString url) { initial_url_ = url; }
 
   Q_INVOKABLE void CreateNewWebView(QString url);
+  Q_INVOKABLE void SetActiveWebView(WebView*);
+
+  Q_INVOKABLE void DumpMemoryInfo();
 
  private slots:
   void OnMozContextInitialized();
