@@ -4,9 +4,10 @@
 
 #include "webview.h"
 
+#include <QDebug>
 #include <QGuiApplication>
 #include <QOpenGLContext>
-#include <QDebug>
+#include <QOpenGLFunctions>
 #include <qmozcontext.h>
 
 #include <QOpenGLContext>
@@ -32,17 +33,12 @@ void LoadFrameScripts(QOpenGLWebPage* page) {
 
 WebView::WebView(WebWindow* window, QObject* parent)
     : QOpenGLWebPage(parent)
-    , window_(window)
-    , context_(0) {
+    , window_(window) {
 
   setWindow(window_);
 
   connect(this, SIGNAL(requestGLContext()),
           this, SLOT(CreateGLContext()), Qt::DirectConnection);
-  connect(this, &QOpenGLWebPage::completedChanged,
-          this, &WebView::OnCompletedChanged);
-  connect(this, &QOpenGLWebPage::activeChanged,
-          this, &WebView::OnActiveChanged);
 
   initialize();
   LoadFrameScripts(this);
@@ -53,30 +49,12 @@ WebView::~WebView() {
 
 void
 WebView::CreateGLContext() {
-  if (!context_) {
-    context_ = new QOpenGLContext();
-    context_->setFormat(window_->requestedFormat());
-    if (!context_->create())
-      qFatal("Failed to create QOpenGLContext!");
-    context_->makeCurrent(window_);
-  } else {
-    context_->makeCurrent(window_);
-  }
-  QOpenGLFunctions* functions = context_->functions();
+  QOpenGLContext* context = window_->GLContext();
+  context->makeCurrent(window_);
+
+  QOpenGLFunctions* functions = context->functions();
   Q_ASSERT(functions);
   functions->glClearColor(1.0, 1.0, 1.0, 0.0);
   functions->glClear(GL_COLOR_BUFFER_BIT);
-  context_->swapBuffers(window_);
-}
-
-void
-WebView::OnCompletedChanged() {
-  qDebug() << "WebView creation completed";
-}
-
-void
-WebView::OnActiveChanged() {
-  if (active()) {
-    window_->SetActiveWebView(this);
-  }
+  context->swapBuffers(window_);
 }

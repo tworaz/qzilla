@@ -15,7 +15,8 @@ class WebViewList : public QAbstractListModel {
   explicit WebViewList(QObject* parent = 0);
 
   void append(WebView*);
-  Q_INVOKABLE WebView* get(int index) const;
+  void remove(WebView*);
+  WebView* get(int index) const;
   bool contains(WebView* wv) const { return data_.contains(wv); }
 
   // QAbstractListModel overrides

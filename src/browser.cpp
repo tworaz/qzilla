@@ -148,6 +148,13 @@ Browser::CreateNewWebView(QString url) {
 }
 
 void
+Browser::CloseWebView(WebView* wv) {
+  wv->setActive(false);
+  web_view_list_.remove(wv);
+  web_window_->SetActiveWebView(web_view_list_.get(0));
+}
+
+void
 Browser::SetActiveWebView(WebView* wv) {
   Q_ASSERT(web_view_list_.contains(wv));
   web_window_->SetActiveWebView(wv);

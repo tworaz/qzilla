@@ -122,7 +122,7 @@ ApplicationWindow {
             ToolButton {
               anchors.centerIn: parent
               iconSource: "qrc:/icons/window-close.png"
-              onClicked: console.log("TODO: handle tab closing")
+              onClicked: Browser.CloseWebView(currentWebView)
             }
           }
         }

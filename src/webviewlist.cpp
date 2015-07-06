@@ -18,6 +18,16 @@ WebViewList::append(WebView* obj) {
   endInsertRows();
 }
 
+void
+WebViewList::remove(WebView* wv) {
+  int idx = data_.indexOf(wv);
+  Q_ASSERT(idx >= 0 && idx < data_.size());
+  beginRemoveRows(QModelIndex(), idx, idx);
+  data_.removeAt(idx);
+  endRemoveRows();
+
+}
+
 WebView*
 WebViewList::get(int index) const {
   if (index < 0 || index >= data_.size())

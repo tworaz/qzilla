@@ -6,7 +6,6 @@
 #define WEB_VIEW_H_
 
 #include <QWindow>
-#include <QOpenGLFunctions>
 #include <qopenglwebpage.h>
 
 class QOpenGLContext;
@@ -21,12 +20,9 @@ class WebView: public QOpenGLWebPage {
 
  private slots:
   void CreateGLContext();
-  void OnCompletedChanged();
-  void OnActiveChanged();
 
  private:
   WebWindow* window_;
-  QOpenGLContext* context_;
 };
 
 #endif // !WEB_VIEW_H_

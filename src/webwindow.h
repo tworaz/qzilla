@@ -6,9 +6,11 @@
 #define WEB_WINDOW_H_
 
 #include <QWindow>
-#include <QAbstractListModel>
+#include <QMutex>
+#include <qmozcontext.h>
 
 class WebView;
+class QOpenGLContext;
 
 class WebWindow : public QWindow {
   Q_OBJECT
@@ -17,6 +19,9 @@ class WebWindow : public QWindow {
 
   void SetActiveWebView(WebView* wv);
   WebView* ActiveWebView() const { return web_view_; }
+  QOpenGLContext* GLContext() const;
+
+  bool ClearWindowSurface();
 
  protected:
   void resizeEvent(QResizeEvent*) override;
@@ -34,7 +39,12 @@ class WebWindow : public QWindow {
   void OnTitleChanged();
 
  private:
+  static void ClearWindowSurfaceImpl(void* data);
+
   WebView* web_view_;
+
+  QMutex clear_surface_task_mutex_;
+  QMozContext::TaskHandle clear_surface_task_;
 };
 
 #endif // WEB_WINDOW_H_

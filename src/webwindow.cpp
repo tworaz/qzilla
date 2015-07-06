@@ -5,13 +5,17 @@
 #include "webwindow.h"
 
 #include <QDebug>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QResizeEvent>
+#include <QThread>
 
 #include "webview.h"
 
 WebWindow::WebWindow(QWindow* parent)
     : QWindow(parent)
-    , web_view_(0) {
+    , web_view_(nullptr)
+    , clear_surface_task_(nullptr) {
   setSurfaceType(QWindow::OpenGLSurface);
   QSurfaceFormat format(requestedFormat());
   format.setAlphaBufferSize(0);
@@ -21,10 +25,12 @@ WebWindow::WebWindow(QWindow* parent)
 
 void
 WebWindow::SetActiveWebView(WebView* wv) {
-  if (wv == web_view_)
+  if (wv == web_view_) {
+    qWarning() << "Tryig to activate already active webview";
     return;
+  }
 
-  if (web_view_) {
+  if (web_view_ && web_view_ != wv) {
     disconnect(web_view_, &WebView::titleChanged,
                this, &WebWindow::OnTitleChanged);
     web_view_->setActive(false);
@@ -32,14 +38,41 @@ WebWindow::SetActiveWebView(WebView* wv) {
 
   web_view_ = wv;
 
-  web_view_->setActive(true);
-  web_view_->update();
+  if (web_view_) {
+    web_view_->setActive(true);
+    web_view_->update();
 
-  connect(web_view_, &WebView::titleChanged,
-          this, &WebWindow::OnTitleChanged);
+    connect(web_view_, &WebView::titleChanged,
+            this, &WebWindow::OnTitleChanged);
 
-  web_view_->setSize(QSizeF(width(), height()));
-  web_view_->updateContentOrientation(Qt::PortraitOrientation);
+    web_view_->setSize(QSizeF(width(), height()));
+    web_view_->updateContentOrientation(Qt::PortraitOrientation);
+  } else {
+    ClearWindowSurface();
+  }
+}
+
+QOpenGLContext*
+WebWindow::GLContext() const {
+  static QOpenGLContext* context = nullptr;
+  if (!context) {
+    context = new QOpenGLContext();
+    context->setFormat(requestedFormat());
+    if (!context->create())
+      qFatal("Failed to create QOpenGLContext!");
+  }
+  return context;
+}
+
+bool
+WebWindow::ClearWindowSurface() {
+  QMutexLocker lock(&clear_surface_task_mutex_);
+  if (clear_surface_task_) {
+      return true;
+  }
+  clear_surface_task_ = QMozContext::GetInstance()->PostCompositorTask(
+      &WebWindow::ClearWindowSurfaceImpl, this);
+  return clear_surface_task_ != 0;
 }
 
 void
@@ -109,4 +142,18 @@ void
 WebWindow::OnTitleChanged() {
   Q_ASSERT(web_view_);
   setTitle(web_view_->title());
+}
+
+void
+WebWindow::ClearWindowSurfaceImpl(void* data) {
+  WebWindow* ww = static_cast<WebWindow*>(data);
+  QOpenGLContext* context = ww->GLContext();
+  // The GL context should always be used from the same thread in which it was created.
+  Q_ASSERT(context->thread() == QThread::currentThread());
+  context->makeCurrent(ww);
+  QOpenGLFunctions* funcs = context->functions();
+  Q_ASSERT(funcs);
+  funcs->glClearColor(1.0, 1.0, 1.0, 0.0);
+  funcs->glClear(GL_COLOR_BUFFER_BIT);
+  context->swapBuffers(ww);
 }
