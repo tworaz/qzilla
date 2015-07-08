@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QJsonDocument>
 #include <QQmlApplicationEngine>
 #include <QQmlComponent>
 #include <QQmlContext>
@@ -20,6 +21,8 @@ const int kDefaultWindowWidth = 540;
 const int kDefaultWindowHeight = 960;
 
 const char* kMemoryDumpMsg = "Memory:Dump";
+const QString kMemoryPressureMsg = "memory-pressure";
+const QString kMemoryPressureArg = "heap-minimize";
 
 const char* kExtraComponentPaths[] = {
   "components/EmbedLiteBinComponents.manifest",
@@ -83,8 +86,8 @@ struct {
   { QStringLiteral("embedlite.zoomMargin"), QVariant(14) },
 
   // Memory management related preferences.
-  // We're sending "memory-pressure" when browser is on background (cover by another application)
-  // and when the browser page is inactivated.
+  // We're sending "memory-pressure" when browser is on background
+  // (cover by another application) and when the browser page is inactivated.
   { QStringLiteral("javascript.options.gc_on_memory_pressure"), QVariant(true) },
 
   // Disable SSLv3
@@ -179,6 +182,11 @@ Browser::DumpMemoryInfo() {
   } else {
     qWarning() << "Can't dump engine memory info without active webview!";
   }
+}
+
+void
+Browser::MemoryPressure() {
+  QMozContext::GetInstance()->sendObserve(kMemoryPressureMsg, kMemoryPressureArg);
 }
 
 void

@@ -19,6 +19,7 @@ ApplicationWindow {
     Menu {
       title: "Memory"
       MenuItem { text: "Dump info"; onTriggered: Browser.DumpMemoryInfo() }
+      MenuItem { text: "Simulate memory pressure"; onTriggered: Browser.MemoryPressure() }
     }
   }
 

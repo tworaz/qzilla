@@ -28,6 +28,7 @@ class Browser : public QObject {
   Q_INVOKABLE void SetActiveWebView(WebView*);
 
   Q_INVOKABLE void DumpMemoryInfo();
+  Q_INVOKABLE void MemoryPressure();
 
  private slots:
   void OnMozContextInitialized();
