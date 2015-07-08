@@ -52,9 +52,13 @@ WebView::CreateGLContext() {
   QOpenGLContext* context = window_->GLContext();
   context->makeCurrent(window_);
 
-  QOpenGLFunctions* functions = context->functions();
-  Q_ASSERT(functions);
-  functions->glClearColor(1.0, 1.0, 1.0, 0.0);
-  functions->glClear(GL_COLOR_BUFFER_BIT);
-  context->swapBuffers(window_);
+  static bool firstClearDone = false;
+  if (!firstClearDone) {
+    QOpenGLFunctions* functions = context->functions();
+    Q_ASSERT(functions);
+    functions->glClearColor(1.0, 1.0, 1.0, 0.0);
+    functions->glClear(GL_COLOR_BUFFER_BIT);
+    context->swapBuffers(window_);
+    firstClearDone = true;
+  }
 }
