@@ -141,7 +141,11 @@ WebWindow::keyReleaseEvent(QKeyEvent* evt) {
 void
 WebWindow::exposeEvent(QExposeEvent*) {
   if (QWindow::isExposed()) {
-    web_view_->update();
+    if (web_view_) {
+      web_view_->update();
+    } else {
+      ClearWindowSurface();
+    }
   }
 }
 
