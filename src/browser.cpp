@@ -95,11 +95,6 @@ struct {
 
   { QStringLiteral("layers.progressive-paint"), QVariant(true) },
   { QStringLiteral("layers.low-precision-buffer"), QVariant(true) },
-
-  //{ QStringLiteral("nglayout.debug.paint_flashing"), QVariant(true) },
-  //{ QStringLiteral("layers.draw-layer-info"), QVariant(true) },
-  //{ QStringLiteral("layers.draw-borders"), QVariant(true) },
-  //{ QStringLiteral("layers.acceleration.draw-fps"), QVariant(true) },
 };
 
 void LoadEmbedLiteComponents(const char* root_dir) {
@@ -190,6 +185,35 @@ Browser::MemoryPressure() {
 }
 
 void
+Browser::ThrottlePainting(bool throttle) {
+  WebView* wv = web_window_->ActiveWebView();
+  if (wv) {
+    qDebug() << "Paint throttling" << (throttle ? "enable" : "disabled");
+    wv->setThrottlePainting(throttle);
+  }
+}
+
+void
+Browser::EnablePaintFlashing(bool enable) {
+  SetGraphicsPref("nglayout.debug.paint_flashing", QVariant(enable));
+}
+
+void
+Browser::DrawLayerInfo(bool draw) {
+  SetGraphicsPref("layers.draw-layer-info", QVariant(draw));
+}
+
+void
+Browser::DrawLayerBorders(bool draw) {
+  SetGraphicsPref("layers.draw-borders", QVariant(draw));
+}
+
+void
+Browser::ShowFPS(bool show) {
+  SetGraphicsPref("layers.acceleration.draw-fps", QVariant(show));
+}
+
+void
 Browser::OnMozContextInitialized() {
   qDebug() << "Mozilla context initialized";
   ApplyCustomSettings();
@@ -205,4 +229,13 @@ Browser::ApplyCustomSettings() {
   int size = sizeof(kCustomSettingsArray) / sizeof(*kCustomSettingsArray);
   for (int i = 0; i < size; ++i)
     context_.setPref(kCustomSettingsArray[i].key, kCustomSettingsArray[i].value);
+}
+
+void
+Browser::SetGraphicsPref(const char* key, QVariant val) {
+  context_.setPref(key, val);
+  WebView* wv = web_window_->ActiveWebView();
+  if (wv) {
+    wv->update();
+  }
 }

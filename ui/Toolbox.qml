@@ -17,6 +17,14 @@ ApplicationWindow {
 
   menuBar: MenuBar {
     Menu {
+      title: "Graphics"
+      MenuItem { text: "Throttle painting"; checkable: true; onTriggered: Browser.ThrottlePainting(checked) }
+      MenuItem { text: "Enable paint flashing"; checkable: true; onTriggered: Browser.EnablePaintFlashing(checked) }
+      MenuItem { text: "Draw layer info"; checkable: true; onTriggered: Browser.DrawLayerInfo(checked) }
+      MenuItem { text: "Draw layer borders"; checkable: true; onTriggered: Browser.DrawLayerBorders(checked) }
+      MenuItem { text: "Show FPS"; checkable: true; onTriggered: Browser.ShowFPS(checked) }
+    }
+    Menu {
       title: "Memory"
       MenuItem { text: "Dump info"; onTriggered: Browser.DumpMemoryInfo() }
       MenuItem { text: "Simulate memory pressure"; onTriggered: Browser.MemoryPressure() }

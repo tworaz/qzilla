@@ -27,14 +27,23 @@ class Browser : public QObject {
   Q_INVOKABLE void CloseWebView(WebView*);
   Q_INVOKABLE void SetActiveWebView(WebView*);
 
+  // Memory debug features.
   Q_INVOKABLE void DumpMemoryInfo();
   Q_INVOKABLE void MemoryPressure();
+
+  // Graphics debug features.
+  Q_INVOKABLE void ThrottlePainting(bool);
+  Q_INVOKABLE void EnablePaintFlashing(bool);
+  Q_INVOKABLE void DrawLayerInfo(bool);
+  Q_INVOKABLE void DrawLayerBorders(bool);
+  Q_INVOKABLE void ShowFPS(bool);
 
  private slots:
   void OnMozContextInitialized();
 
  private:
   void ApplyCustomSettings();
+  void SetGraphicsPref(const char*, QVariant);
 
   QScopedPointer<WebWindow> web_window_;
   WebViewList web_view_list_;
@@ -43,6 +52,8 @@ class Browser : public QObject {
 
   QScopedPointer<QQmlApplicationEngine> engine_;
   QScopedPointer<QQmlComponent> component_;
+
+  Q_DISABLE_COPY(Browser);
 };
 
 #endif // BROWSER_H_
