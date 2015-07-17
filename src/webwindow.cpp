@@ -166,6 +166,7 @@ WebWindow::ClearWindowSurfaceImpl(void* data) {
   context->makeCurrent(ww);
   QOpenGLFunctions* funcs = context->functions();
   Q_ASSERT(funcs);
+  funcs->glScissor(0, 0, ww->width(), ww->height());
   funcs->glClearColor(1.0, 1.0, 1.0, 0.0);
   funcs->glClear(GL_COLOR_BUFFER_BIT);
   context->swapBuffers(ww);
