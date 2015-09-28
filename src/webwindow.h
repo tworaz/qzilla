@@ -21,6 +21,7 @@ class WebWindow : public QWindow {
   void SetActiveWebView(WebView* wv);
   WebView* ActiveWebView() const { return web_view_; }
   QOpenGLContext* GLContext() const;
+  void SetLandscape(bool landscape) { landscape_ = landscape; }
 
   bool ClearWindowSurface();
 
@@ -43,6 +44,7 @@ class WebWindow : public QWindow {
   static void ClearWindowSurfaceImpl(void* data);
 
   WebView* web_view_;
+  bool landscape_;
 
   QMutex clear_surface_task_mutex_;
   QMozContext::TaskHandle clear_surface_task_;

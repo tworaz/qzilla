@@ -15,6 +15,7 @@
 WebWindow::WebWindow(QWindow* parent)
     : QWindow(parent)
     , web_view_(nullptr)
+    , landscape_(false)
     , clear_surface_task_(nullptr) {
   setSurfaceType(QWindow::OpenGLSurface);
   QSurfaceFormat format(requestedFormat());
@@ -52,8 +53,11 @@ WebWindow::SetActiveWebView(WebView* wv) {
     connect(web_view_, &WebView::titleChanged,
             this, &WebWindow::OnTitleChanged);
 
-    web_view_->setSize(QSizeF(width(), height()));
-    web_view_->updateContentOrientation(Qt::PortraitOrientation);
+    QSizeF size(width(), height());
+    if (landscape_) {
+      size.transpose();
+    }
+    web_view_->setSize(size);
   } else {
     ClearWindowSurface();
   }
@@ -85,8 +89,11 @@ WebWindow::ClearWindowSurface() {
 void
 WebWindow::resizeEvent(QResizeEvent* evt) {
   if (web_view_) {
-    web_view_->setSize(evt->size());
-    web_view_->updateContentOrientation(Qt::PortraitOrientation);
+    QSizeF size = evt->size();
+    if (landscape_) {
+      size.transpose();
+    }
+    web_view_->setSize(size);
   }
 }
 

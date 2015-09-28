@@ -29,6 +29,18 @@ ApplicationWindow {
       MenuItem { text: "Dump info"; onTriggered: Browser.DumpMemoryInfo() }
       MenuItem { text: "Simulate memory pressure"; onTriggered: Browser.MemoryPressure() }
     }
+    Menu {
+      title: "Orientation"
+      ExclusiveGroup { id: rotationGroup }
+      MenuItem { text: "Portrait"; exclusiveGroup: rotationGroup; checkable: true;
+                 checked: true; onTriggered: Browser.Rotate(Qt.PortraitOrientation); }
+      MenuItem { text: "Inverted Portrait"; exclusiveGroup: rotationGroup; checkable: true;
+                 onTriggered: Browser.Rotate(Qt.InvertedPortraitOrientation); }
+      MenuItem { text: "Landscape"; exclusiveGroup: rotationGroup; checkable: true;
+                 onTriggered: Browser.Rotate(Qt.LandscapeOrientation); }
+      MenuItem { text: "Inverted Landscape"; exclusiveGroup: rotationGroup; checkable: true;
+                 onTriggered: Browser.Rotate(Qt.InvertedLandscapeOrientation); }
+    }
   }
 
   toolBar: ToolBar {
@@ -107,11 +119,11 @@ ApplicationWindow {
 
         MouseArea {
           anchors.fill: parent
-	  onClicked: {
+          onClicked: {
             if (!currentWebView.active) {
-	      Browser.SetActiveWebView(currentWebView)
+              Browser.SetActiveWebView(currentWebView)
             }
-	  }
+          }
         }
 
         RowLayout {

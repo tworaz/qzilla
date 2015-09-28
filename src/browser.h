@@ -37,6 +37,7 @@ class Browser : public QObject {
   Q_INVOKABLE void DrawLayerInfo(bool);
   Q_INVOKABLE void DrawLayerBorders(bool);
   Q_INVOKABLE void ShowFPS(bool);
+  Q_INVOKABLE void Rotate(Qt::ScreenOrientation);
 
  private slots:
   void OnMozContextInitialized();

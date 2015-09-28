@@ -41,12 +41,6 @@ struct {
   { QStringLiteral("browser.ui.touch.top"), QVariant(48) },
   { QStringLiteral("browser.ui.touch.bottom"), QVariant(16) },
 
-  { QStringLiteral("embedlite.azpc.handle.singletap"), QVariant(false) },
-  { QStringLiteral("embedlite.azpc.json.singletap"), QVariant(true) },
-  { QStringLiteral("embedlite.azpc.handle.longtap"), QVariant(false) },
-  { QStringLiteral("embedlite.azpc.json.longtap"), QVariant(true) },
-  { QStringLiteral("embedlite.azpc.json.viewport"), QVariant(true) },
-
   { QStringLiteral("browser.download.useDownloadDir"), QVariant(true) },
   { QStringLiteral("browser.download.folderList"), QVariant(2) },
   { QStringLiteral("browser.download.dir"), QVariant("/tmp") },
@@ -211,6 +205,24 @@ Browser::DrawLayerBorders(bool draw) {
 void
 Browser::ShowFPS(bool show) {
   SetGraphicsPref("layers.acceleration.draw-fps", QVariant(show));
+}
+
+void
+Browser::Rotate(Qt::ScreenOrientation orientation) {
+  switch (orientation) {
+    case Qt::PrimaryOrientation:
+    case Qt::PortraitOrientation:
+    case Qt::InvertedPortraitOrientation:
+      web_window_->SetLandscape(false);
+      break;
+    default:
+      web_window_->SetLandscape(true);
+      break;
+  }
+  WebView* wv = web_window_->ActiveWebView();
+  if (wv) {
+    wv->updateContentOrientation(orientation);
+  }
 }
 
 void
