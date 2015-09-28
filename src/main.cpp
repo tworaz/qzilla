@@ -18,9 +18,11 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  setenv("CUSTOM_UA", "Mozilla/5.0 (Maemo; Linux; U; Jolla; Sailfish; Mobile; "
-         "rv:31.0) Gecko/31.0 Firefox/31.0 SailfishBrowser/1.0", 1);
   setenv("USE_ASYNC", "1", 1);
+  if (!getenv("CUSTOM_UA")) {
+    setenv("CUSTOM_UA", "Mozilla/5.0 (Maemo; Linux; U; Jolla; Sailfish; Mobile; "
+           "rv:38.0) Gecko/38.0 Firefox/38.0 SailfishBrowser/1.0", 1);
+  }
 
   qmlRegisterType<QOpenGLWebPage>();
   qmlRegisterType<WebView>();
@@ -29,14 +31,12 @@ int main(int argc, char* argv[]) {
   QGuiApplication app(argc, argv);
   Browser browser;
 
-  app.setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents, true);
+  app.setQuitOnLastWindowClosed(false);
 
   if (url.isValid())
     browser.SetInitialURL(url.toString());
 
   QTimer::singleShot(0, QMozContext::GetInstance(), SLOT(runEmbedding()));
-  QObject::connect(&app, SIGNAL(lastWindowClosed()),
-      QMozContext::GetInstance(), SLOT(stopEmbedding()));
 
   return app.exec();
 }

@@ -15,14 +15,16 @@ class WebView: public QOpenGLWebPage {
  Q_OBJECT
 
  public:
-  explicit WebView(WebWindow* window, QObject *parent = 0);
+  explicit WebView(WebWindow* window);
   ~WebView();
 
  private slots:
-  void CreateGLContext();
+  void OnViewInitialized();
 
  private:
   WebWindow* window_;
+
+  Q_DISABLE_COPY(WebView);
 };
 
 #endif // !WEB_VIEW_H_

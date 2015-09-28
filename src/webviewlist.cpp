@@ -34,6 +34,14 @@ WebViewList::get(int index) const {
   return data_.at(index);
 }
 
+void
+WebViewList::clear() {
+  for (WebView* wv : data_) {
+    delete wv;
+  }
+  data_.clear();
+}
+
 QVariant
 WebViewList::data(const QModelIndex &index, int role) const {
   if (index.row() < 0 || index.row() >= data_.size())

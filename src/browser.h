@@ -37,9 +37,16 @@ class Browser : public QObject {
   Q_INVOKABLE void DrawLayerInfo(bool);
   Q_INVOKABLE void DrawLayerBorders(bool);
   Q_INVOKABLE void ShowFPS(bool);
+  Q_INVOKABLE void Rotate(Qt::ScreenOrientation);
+  Q_INVOKABLE void Quit();
 
  private slots:
   void OnMozContextInitialized();
+  void OnMozContextDestroyed();
+  void OnWindowInitialized();
+  void OnWindowClosed();
+  void OnLastViewDestroyed();
+  void OnLastWindowDestroyed();
 
  private:
   void ApplyCustomSettings();
@@ -52,6 +59,8 @@ class Browser : public QObject {
 
   QScopedPointer<QQmlApplicationEngine> engine_;
   QScopedPointer<QQmlComponent> component_;
+  QScopedPointer<QWindow> toolbox_window_;
+  bool should_terminate_;
 
   Q_DISABLE_COPY(Browser);
 };

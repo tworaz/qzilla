@@ -15,19 +15,33 @@ ApplicationWindow {
   readonly property string kHomePage: "about:blank"
   property alias activeWebView: listView.activeWebView
 
+  onClosing: Browser.Quit()
+
   menuBar: MenuBar {
     Menu {
       title: "Graphics"
-      MenuItem { text: "Throttle painting"; checkable: true; onTriggered: Browser.ThrottlePainting(checked) }
-      MenuItem { text: "Enable paint flashing"; checkable: true; onTriggered: Browser.EnablePaintFlashing(checked) }
-      MenuItem { text: "Draw layer info"; checkable: true; onTriggered: Browser.DrawLayerInfo(checked) }
       MenuItem { text: "Draw layer borders"; checkable: true; onTriggered: Browser.DrawLayerBorders(checked) }
+      MenuItem { text: "Draw layer info"; checkable: true; onTriggered: Browser.DrawLayerInfo(checked) }
+      MenuItem { text: "Enable paint flashing"; checkable: true; onTriggered: Browser.EnablePaintFlashing(checked) }
       MenuItem { text: "Show FPS"; checkable: true; onTriggered: Browser.ShowFPS(checked) }
+      MenuItem { text: "Throttle painting"; checkable: true; onTriggered: Browser.ThrottlePainting(checked) }
     }
     Menu {
       title: "Memory"
       MenuItem { text: "Dump info"; onTriggered: Browser.DumpMemoryInfo() }
       MenuItem { text: "Simulate memory pressure"; onTriggered: Browser.MemoryPressure() }
+    }
+    Menu {
+      title: "Orientation"
+      ExclusiveGroup { id: rotationGroup }
+      MenuItem { text: "Portrait"; exclusiveGroup: rotationGroup; checkable: true;
+                 checked: true; onTriggered: Browser.Rotate(Qt.PortraitOrientation); }
+      MenuItem { text: "Inverted Portrait"; exclusiveGroup: rotationGroup; checkable: true;
+                 onTriggered: Browser.Rotate(Qt.InvertedPortraitOrientation); }
+      MenuItem { text: "Landscape"; exclusiveGroup: rotationGroup; checkable: true;
+                 onTriggered: Browser.Rotate(Qt.LandscapeOrientation); }
+      MenuItem { text: "Inverted Landscape"; exclusiveGroup: rotationGroup; checkable: true;
+                 onTriggered: Browser.Rotate(Qt.InvertedLandscapeOrientation); }
     }
   }
 
@@ -107,11 +121,11 @@ ApplicationWindow {
 
         MouseArea {
           anchors.fill: parent
-	  onClicked: {
+          onClicked: {
             if (!currentWebView.active) {
-	      Browser.SetActiveWebView(currentWebView)
+              Browser.SetActiveWebView(currentWebView)
             }
-	  }
+          }
         }
 
         RowLayout {

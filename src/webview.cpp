@@ -31,14 +31,14 @@ void LoadFrameScripts(QOpenGLWebPage* page) {
 
 } // namespace
 
-WebView::WebView(WebWindow* window, QObject* parent)
-    : QOpenGLWebPage(parent)
+WebView::WebView(WebWindow* window)
+    : QOpenGLWebPage(nullptr)
     , window_(window) {
 
-  setWindow(window_);
+  setMozWindow(window->MozWindow());
 
-  connect(this, SIGNAL(requestGLContext()),
-          this, SLOT(CreateGLContext()), Qt::DirectConnection);
+  connect(this, &QOpenGLWebPage::viewInitialized,
+          this, &WebView::OnViewInitialized);
 
   initialize();
   LoadFrameScripts(this);
@@ -48,17 +48,6 @@ WebView::~WebView() {
 }
 
 void
-WebView::CreateGLContext() {
-  QOpenGLContext* context = window_->GLContext();
-  context->makeCurrent(window_);
-
-  static bool firstClearDone = false;
-  if (!firstClearDone) {
-    QOpenGLFunctions* functions = context->functions();
-    Q_ASSERT(functions);
-    functions->glClearColor(1.0, 1.0, 1.0, 0.0);
-    functions->glClear(GL_COLOR_BUFFER_BIT);
-    context->swapBuffers(window_);
-    firstClearDone = true;
-  }
+WebView::OnViewInitialized() {
+  qDebug() << "View initialized: " << this;
 }

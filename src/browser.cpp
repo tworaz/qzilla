@@ -4,6 +4,7 @@
 
 #include "browser.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
@@ -13,6 +14,7 @@
 #include <QQmlContext>
 
 #include <qmozcontext.h>
+#include <qmozwindow.h>
 
 namespace {
 
@@ -69,7 +71,6 @@ struct {
 
   // Don't force 16bit color depth
   { QStringLiteral("gfx.qt.rgb16.force"), QVariant(false) },
-  { QStringLiteral("gfx.compositor.external-window"), QVariant(true) },
   { QStringLiteral("gfx.compositor.clear-context"), QVariant(false) },
   { QStringLiteral("embedlite.compositor.external_gl_context"), QVariant(true) },
   { QStringLiteral("embedlite.compositor.request_external_gl_context_early"), QVariant(true) },
@@ -95,6 +96,9 @@ struct {
 
   { QStringLiteral("layers.progressive-paint"), QVariant(true) },
   { QStringLiteral("layers.low-precision-buffer"), QVariant(true) },
+
+  { QStringLiteral("layers.acceleration.force-enabled"), QVariant(true) },
+  { QStringLiteral("layout.spammy_warnings.enabled"), QVariant(false) },
 };
 
 void LoadEmbedLiteComponents(const char* root_dir) {
@@ -115,9 +119,15 @@ Browser::Browser(QObject* parent)
     , web_window_(new WebWindow)
     , context_(*QMozContext::GetInstance())
     , engine_(new QQmlApplicationEngine)
-    , component_(new QQmlComponent(engine_.data())) {
+    , component_(new QQmlComponent(engine_.data()))
+    , should_terminate_(false) {
 
   LoadEmbedLiteComponents(getenv("GRE_HOME"));
+
+  connect(web_window_.data(), &WebWindow::WindowInitialized,
+          this, &Browser::OnWindowInitialized);
+  connect(web_window_.data(), &WebWindow::WindowClosed,
+          this, &Browser::OnWindowClosed);
 
   web_window_->resize(kDefaultWindowWidth, kDefaultWindowHeight);
 
@@ -128,10 +138,17 @@ Browser::Browser(QObject* parent)
   if (!component_->isReady())
     qFatal("Failed to load QML component: %s",
            qPrintable(component_->errorString()));
-  component_->create();
+  QObject* result = component_->create();
+  toolbox_window_.reset(qobject_cast<QWindow*>(result));
 
   connect(&context_, &QMozContext::onInitialized,
           this, &Browser::OnMozContextInitialized);
+  connect(&context_, &QMozContext::destroyed,
+          this, &Browser::OnMozContextDestroyed);
+  connect(&context_, &QMozContext::lastViewDestroyed,
+          this, &Browser::OnLastViewDestroyed);
+  connect(&context_, &QMozContext::lastWindowDestroyed,
+          this, &Browser::OnLastWindowDestroyed);
 }
 
 Browser::~Browser() {
@@ -214,17 +231,63 @@ Browser::ShowFPS(bool show) {
 }
 
 void
+Browser::Rotate(Qt::ScreenOrientation orientation) {
+  web_window_->MozWindow()->setContentOrientation(orientation);
+}
+
+void
+Browser::Quit() {
+  qDebug() << "Browser received terminaton request from UI.";
+  should_terminate_ = true;
+  toolbox_window_->hide();
+  web_view_list_.clear();
+}
+
+void
 Browser::OnMozContextInitialized() {
   qDebug() << "Mozilla context initialized";
+  web_window_->Initialize();
   ApplyCustomSettings();
+}
+
+void
+Browser::OnMozContextDestroyed() {
+  qDebug() << "Mozilla context destroyed";
+  Q_ASSERT(should_terminate_);
+  qApp->exit();
+}
+
+void
+Browser::OnWindowInitialized() {
   CreateNewWebView(initial_url_.isEmpty() ? kHomePageURL : initial_url_);
   web_window_->show();
 }
 
 void
+Browser::OnWindowClosed() {
+  Quit();
+}
+
+void
+Browser::OnLastViewDestroyed() {
+  if (should_terminate_) {
+    qDebug() << "Last EmbedLiteView destroyed.";
+    web_window_.reset();
+  }
+}
+
+void
+Browser::OnLastWindowDestroyed() {
+  if (should_terminate_) {
+    qDebug() << "Last EmbedLiteWindow destroyed.";
+    context_.stopEmbedding();
+  }
+}
+
+void
 Browser::ApplyCustomSettings() {
   context_.setIsAccelerated(true);
-  context_.setPixelRatio(1.5);
+  context_.setPixelRatio(1.5f);
 
   int size = sizeof(kCustomSettingsArray) / sizeof(*kCustomSettingsArray);
   for (int i = 0; i < size; ++i)

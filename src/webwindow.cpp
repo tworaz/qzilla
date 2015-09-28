@@ -5,22 +5,27 @@
 #include "webwindow.h"
 
 #include <QDebug>
+#include <QGuiApplication>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QResizeEvent>
 #include <QThread>
 
+#include <qmozwindow.h>
+
 #include "webview.h"
 
 WebWindow::WebWindow(QWindow* parent)
     : QWindow(parent)
+    , moz_window_(nullptr)
     , web_view_(nullptr)
     , clear_surface_task_(nullptr) {
   setSurfaceType(QWindow::OpenGLSurface);
-  QSurfaceFormat format(requestedFormat());
-  format.setAlphaBufferSize(0);
-  setFormat(format);
+  //QSurfaceFormat format(requestedFormat());
+  //format.setAlphaBufferSize(0);
+  //setFormat(format);
   create();
+  EnableMouseEvents(false);
 }
 
 WebWindow::~WebWindow() {
@@ -28,6 +33,20 @@ WebWindow::~WebWindow() {
   if (clear_surface_task_) {
     QMozContext::GetInstance()->CancelTask(clear_surface_task_);
   }
+}
+
+void
+WebWindow::Initialize() {
+  moz_window_.reset(new QMozWindow);
+
+  connect(moz_window_.data(), &QMozWindow::requestGLContext,
+          this, &WebWindow::OnRequestGLContext, Qt::DirectConnection);
+  connect(moz_window_.data(), &QMozWindow::initialized,
+          this, &WebWindow::OnWindowInitialized);
+  connect(moz_window_.data(), &QMozWindow::drawUnderlay,
+          this, &WebWindow::OnDrawUnderlay, Qt::DirectConnection);
+
+  moz_window_->setSize(QWindow::size());
 }
 
 void
@@ -51,24 +70,9 @@ WebWindow::SetActiveWebView(WebView* wv) {
 
     connect(web_view_, &WebView::titleChanged,
             this, &WebWindow::OnTitleChanged);
-
-    web_view_->setSize(QSizeF(width(), height()));
-    web_view_->updateContentOrientation(Qt::PortraitOrientation);
   } else {
     ClearWindowSurface();
   }
-}
-
-QOpenGLContext*
-WebWindow::GLContext() const {
-  static QOpenGLContext* context = nullptr;
-  if (!context) {
-    context = new QOpenGLContext();
-    context->setFormat(requestedFormat());
-    if (!context->create())
-      qFatal("Failed to create QOpenGLContext!");
-  }
-  return context;
 }
 
 bool
@@ -83,10 +87,21 @@ WebWindow::ClearWindowSurface() {
 }
 
 void
+WebWindow::EnableMouseEvents(bool enable) {
+  enable_mouse_events_ = enable;
+  if (enable) {
+    QGuiApplication::instance()->setAttribute(
+        Qt::AA_SynthesizeTouchForUnhandledMouseEvents, false);
+  } else {
+    QGuiApplication::instance()->setAttribute(
+        Qt::AA_SynthesizeTouchForUnhandledMouseEvents, true);
+  }
+}
+
+void
 WebWindow::resizeEvent(QResizeEvent* evt) {
   if (web_view_) {
-    web_view_->setSize(evt->size());
-    web_view_->updateContentOrientation(Qt::PortraitOrientation);
+    moz_window_->setSize(evt->size());
   }
 }
 
@@ -149,10 +164,71 @@ WebWindow::exposeEvent(QExposeEvent*) {
   }
 }
 
+bool
+WebWindow::event(QEvent* event) {
+  if (event->type() == QEvent::Close) {
+    emit WindowClosed();
+  }
+  return QWindow::event(event);
+}
+
 void
 WebWindow::OnTitleChanged() {
   Q_ASSERT(web_view_);
   setTitle(web_view_->title());
+}
+
+void
+WebWindow::OnWindowInitialized()
+{
+  emit WindowInitialized();
+}
+
+void
+WebWindow::OnRequestGLContext() {
+  QOpenGLContext* context = GLContext();
+  context->makeCurrent(this);
+
+  static bool firstClearDone = false;
+  if (!firstClearDone) {
+    QOpenGLFunctions* functions = context->functions();
+    Q_ASSERT(functions);
+    functions->glClearColor(1.0, 1.0, 1.0, 0.0);
+    functions->glClear(GL_COLOR_BUFFER_BIT);
+    if (QWindow::isExposed()) {
+      context->swapBuffers(this);
+    }
+    firstClearDone = true;
+  }
+}
+
+void
+WebWindow::OnDrawUnderlay() {
+  Q_ASSERT(GLContext());
+
+  if (!web_view_) {
+     return;
+  }
+
+  QOpenGLContext* context = GLContext();
+  context->makeCurrent(this);
+  QOpenGLFunctions* funcs = context->functions();
+  Q_ASSERT(funcs);
+  QColor bgColor = web_view_->bgcolor();
+  funcs->glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), 0.0);
+  funcs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+QOpenGLContext*
+WebWindow::GLContext() const {
+  static QOpenGLContext* context = nullptr;
+  if (!context) {
+    context = new QOpenGLContext();
+    context->setFormat(requestedFormat());
+    if (!context->create())
+      qFatal("Failed to create QOpenGLContext!");
+  }
+  return context;
 }
 
 void
@@ -168,7 +244,9 @@ WebWindow::ClearWindowSurfaceImpl(void* data) {
   Q_ASSERT(funcs);
   funcs->glClearColor(1.0, 1.0, 1.0, 0.0);
   funcs->glClear(GL_COLOR_BUFFER_BIT);
-  context->swapBuffers(ww);
+  if (ww->isExposed()) {
+    context->swapBuffers(ww);
+  }
 
   ww->clear_surface_task_ = 0;
 }
